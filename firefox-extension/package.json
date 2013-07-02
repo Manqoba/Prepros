@@ -1,0 +1,24 @@
+{
+	"description":"Prepros Firefox Extension",
+	
+	"author":"sbspk",
+
+	"url":"",
+
+	"dependencies":[
+		"api-utils",
+		"addon-kit"
+	],
+
+	"version":"1",
+
+	"lib":"lib",
+
+	"fullName":"Prepros",
+
+	"main":"main",
+
+	"id":"jid0-jKPj8ZGjjP8dgO71g5oWimAw0wc",
+
+	"name":"prepros"
+}
