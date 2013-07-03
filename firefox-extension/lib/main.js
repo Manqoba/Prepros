@@ -1,4 +1,8 @@
+/*global exports, require */
+
 exports.main = function() {
+
+    'use strict';
 
     Array.prototype.contains = function(item) {
         var i = this.length;
@@ -11,8 +15,6 @@ exports.main = function() {
     };
 
     function parseUrl(string){
-
-        'use strict';
         
         var parser = document.createElement('a');
         
@@ -22,15 +24,13 @@ exports.main = function() {
     }
 
     var socketRunning = false,
-	    liveUrls = [];
+        liveUrls = [];
 
-    function startSocket(){
-        
-        'use strict';
-        
-	    var socket = new WebSocket('ws://localhost:5656');
+    function startSocket(callback){
 
-	    socket.addEventListener('message', function(evt){
+        var socket = new WebSocket('ws://localhost:5656');
+
+        socket.addEventListener('message', function(evt){
             
             liveUrls = [];
 
@@ -54,6 +54,8 @@ exports.main = function() {
         socket.addEventListener('open', function(){
             
             socketRunning = true;
+
+            callback();
         });
         
         socket.addEventListener('close', function(){
@@ -63,26 +65,29 @@ exports.main = function() {
     }
     
     require('sdk/tabs').on('ready', function(tab) {
-    
-        'use strict';
+
+        var callback = function() {
+            var parsedUrl = parseUrl(tab.url).protocol + '//' + parseUrl(tab.url).host;
+
+            if(tab.url.match(/^file:\/\/\//gi) || liveUrls.contains(parsedUrl)) {
+
+                tab.attach({
+                    contentScript: "(function(){var script = document.createElement('script');" +
+                        "document.querySelector('body').appendChild(script);" +
+                        "script.src='http://localhost:5656/lr/livereload.js?snipver=1&host=localhost&port=25690';" +
+                        "})();"
+                });
+
+            }
+        };
         
         if(!socketRunning) {
                 
-            startSocket();
-        }
-        
-        var parsedUrl = parseUrl(tab.url).protocol + '//' + parseUrl(tab.url).host;
-        
-        if(tab.url.match(/^file:\/\/\//gi) || liveUrls.contains(parsedUrl)) {
-        
-        
-            tab.attach({
-                contentScript: "(function(){var script = document.createElement('script');" +
-                                "document.querySelector('body').appendChild(script);" +
-                                "script.src='http://localhost:5656/lr/livereload.js?snipver=1&host=localhost&port=25690';" +
-                                "})();"
-            });
-        
+            startSocket(callback);
+
+        } else {
+
+            callback();
         }
     });
-}
+};
